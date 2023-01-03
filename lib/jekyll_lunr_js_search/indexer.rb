@@ -93,7 +93,7 @@ module Jekyll
 
         total = {
           "docs" => @docs,
-          "index" => ::JSON.parse(index)
+          "index" => ::JSON.parse(index, :max_nesting => false)
         }
 
         filepath = File.join(site.dest, filename)
