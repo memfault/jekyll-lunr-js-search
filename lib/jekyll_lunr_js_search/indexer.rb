@@ -46,9 +46,9 @@ module Jekyll
       # Index all pages except pages matching any value in config['lunr_excludes'] or with date['exclude_from_search']
       # The main content from each page is extracted and saved to disk as json
       def generate(site)
-        # If the environment variable to generate the search index is set,
-        # continue, otherwise exit
-        if ENV["GENERATE_SEARCH_INDEX"] != "true"
+        # If the environment variable for a production build is set, continue,
+        # otherwise exit
+        if ENV["JEKYLL_ENV"] != "production"
           Jekyll.logger.info "Lunr:", "Search index generation disabled. Enable by setting 'GENERATE_SEARCH_INDEX=true' environment variable."
           return
         end
