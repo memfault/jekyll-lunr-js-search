@@ -1,3 +1,18 @@
+module Jekyll
+  module LunrJsSearch  
+    class SearchIndexFile < Jekyll::StaticFile
+      # Override write as the index.json index file has already been created 
+      def write(dest)
+        true
+      end
+    end
+  end
+end
+module Jekyll
+  module LunrJsSearch
+    VERSION = "3.3.0"
+  end
+end
 require 'fileutils'
 require 'net/http'
 require 'json'
@@ -46,6 +61,13 @@ module Jekyll
       # Index all pages except pages matching any value in config['lunr_excludes'] or with date['exclude_from_search']
       # The main content from each page is extracted and saved to disk as json
       def generate(site)
+        # If the environment variable for a production build is set, continue,
+        # otherwise exit
+        if ENV["JEKYLL_ENV"] != "production"
+          Jekyll.logger.info "Lunr:", "Search index generation disabled. Enable by setting 'JEKYLL_ENV=production' environment variable."
+          return
+        end
+
         Jekyll.logger.info "Lunr:", 'Creating search index...'
 
         @site = site
@@ -93,7 +115,7 @@ module Jekyll
 
         total = {
           "docs" => @docs,
-          "index" => ::JSON.parse(index)
+          "index" => ::JSON.parse(index, :max_nesting => false)
         }
 
         filepath = File.join(site.dest, filename)
@@ -152,44 +174,6 @@ require 'nokogiri'
 
 module Jekyll
   module LunrJsSearch
-    class PageRenderer
-      def initialize(site)
-        @site = site
-      end
-
-      # render item, but without using its layout
-      def prepare(item)
-        layout = item.data["layout"]
-        begin
-          item.data["layout"] = nil
-
-          if item.is_a?(Jekyll::Document)
-            output = Jekyll::Renderer.new(@site, item).run
-          else
-            item.render({}, @site.site_payload)
-            output = item.output
-          end
-        ensure
-          # restore original layout
-          item.data["layout"] = layout
-        end
-
-        output
-      end
-
-      # render the item, parse the output and get all text inside <p> elements
-      def render(item)
-        layoutless = item.dup
-
-        Nokogiri::HTML(prepare(layoutless)).text
-      end
-    end
-  end
-end
-require 'nokogiri'
-
-module Jekyll
-  module LunrJsSearch
     class SearchEntry
       def self.create(site, renderer)
         if site.is_a?(Jekyll::Page) or site.is_a?(Jekyll::Document)
@@ -235,18 +219,41 @@ module Jekyll
     end
   end
 end
+require 'nokogiri'
+
 module Jekyll
   module LunrJsSearch
-    class SearchIndexFile < Jekyll::StaticFile
-      # Override write as the index.json index file has already been created
-      def write(dest)
-        true
+    class PageRenderer
+      def initialize(site)
+        @site = site
+      end
+      
+      # render item, but without using its layout
+      def prepare(item)
+        layout = item.data["layout"]
+        begin
+          item.data["layout"] = nil
+
+          if item.is_a?(Jekyll::Document)          
+            output = Jekyll::Renderer.new(@site, item).run
+          else
+            item.render({}, @site.site_payload)
+            output = item.output  
+          end
+        ensure
+          # restore original layout
+          item.data["layout"] = layout
+        end
+      
+        output
+      end
+
+      # render the item, parse the output and get all text inside <p> elements
+      def render(item)
+        layoutless = item.dup
+
+        Nokogiri::HTML(prepare(layoutless)).text
       end
     end
-  end
-end
-module Jekyll
-  module LunrJsSearch
-    VERSION = "3.3.0"
-  end
+  end  
 end

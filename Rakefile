@@ -17,7 +17,7 @@ task :build => [
   :minify_js]
 
 task :bower_update do
-  abort "Please ensure bower is installed: npm install -g bower" unless system('bower install')
+  abort "Please ensure bower is installed: npm install -g bower" unless system('bower --allow-root install')
 end
 
 task :create_build_dir do

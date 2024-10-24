@@ -40,7 +40,7 @@
 
       this.loadIndexData(function(data) {
         self.entries = $.map(data.docs, self.createEntry);
-        self.index = lunr.Index.load(data.index);
+        self.index = lunr.Index.load(JSON.parse(JSON.stringify(data.index)))
         self.populateSearchFromQuery();
         self.bindKeypress();
       });
