@@ -49,7 +49,7 @@ module Jekyll
         # If the environment variable for a production build is set, continue,
         # otherwise exit
         if ENV["JEKYLL_ENV"] != "production"
-          Jekyll.logger.info "Lunr:", "Search index generation disabled. Enable by setting 'GENERATE_SEARCH_INDEX=true' environment variable."
+          Jekyll.logger.info "Lunr:", "Search index generation disabled. Enable by setting 'JEKYLL_ENV=production' environment variable."
           return
         end
 
@@ -72,7 +72,7 @@ module Jekyll
           entry = SearchEntry.create(item, content_renderer)
 
           entry.strip_index_suffix_from_url! if @strip_index_html
-          entry.strip_stopwords!(stopwords, @min_length) if File.exists?(@stopwords_file)
+          entry.strip_stopwords!(stopwords, @min_length) if File.exist?(@stopwords_file)
 
           doc = {
             "id" => i,
